@@ -21,6 +21,9 @@ struct BusinessDetails;
 
 namespace Tdb {
 class TLDuserFullInfo;
+class TLbotInfo;
+class TLbirthdate;
+class TLuserStatus;
 } // namespace Tdb
 
 struct BotInfo {
