@@ -145,7 +145,7 @@ void SaveDefaultRestrictions(
 		Fn<void()> done) {
 	const auto api = &peer->session().api();
 	const auto key = Api::RequestKey("default_restrictions", peer->id);
-
+#if 0 // todo
 	const auto requestId = api->request(
 		MTPmessages_EditChatDefaultBannedRights(
 			peer->input,
@@ -173,6 +173,7 @@ void SaveDefaultRestrictions(
 	}).send();
 
 	api->registerModifyRequest(key, requestId);
+#endif
 }
 
 void SaveSlowmodeSeconds(
@@ -181,7 +182,7 @@ void SaveSlowmodeSeconds(
 		Fn<void()> done) {
 	const auto api = &channel->session().api();
 	const auto key = Api::RequestKey("slowmode_seconds", channel->id);
-
+#if 0 // todo
 	const auto requestId = api->request(MTPchannels_ToggleSlowMode(
 		channel->inputChannel,
 		MTP_int(seconds)
@@ -200,6 +201,7 @@ void SaveSlowmodeSeconds(
 	}).send();
 
 	api->registerModifyRequest(key, requestId);
+#endif
 }
 
 void SaveBoostsUnrestrict(
@@ -1894,7 +1896,7 @@ void Controller::saveTitle() {
 	if (!_savingData.title || *_savingData.title == _peer->name()) {
 		return continueSave();
 	}
-
+#if 0 // todo
 	const auto onDone = [=](const MTPUpdates &result) {
 		_peer->session().api().applyUpdates(result);
 		continueSave();
@@ -1962,6 +1964,7 @@ void Controller::saveTitle() {
 	} else {
 		continueSave();
 	}
+#endif
 }
 
 void Controller::saveDescription() {
@@ -1969,6 +1972,7 @@ void Controller::saveDescription() {
 		|| *_savingData.description == _peer->about()) {
 		return continueSave();
 	}
+#if 0 // todo
 	const auto successCallback = [=] {
 		_peer->setAbout(*_savingData.description);
 		continueSave();
@@ -2017,6 +2021,7 @@ void Controller::saveDescription() {
 		_controls.description->showError();
 		cancelSave();
 	}).send();
+#endif
 }
 
 void Controller::saveHistoryVisibility() {
@@ -2067,6 +2072,7 @@ void Controller::togglePreHistoryHidden(
 		bool hidden,
 		Fn<void()> done,
 		Fn<void()> fail) {
+#if 0 // todo
 	const auto apply = [=] {
 		// Update in the result doesn't contain the
 		// channelFull:flags field which holds this value.
@@ -2090,6 +2096,7 @@ void Controller::togglePreHistoryHidden(
 			fail();
 		}
 	}).send();
+#endif
 }
 
 void Controller::saveForum() {
@@ -2132,6 +2139,7 @@ void Controller::saveSignatures() {
 		|| *_savingData.signatures == channel->addsSignature()) {
 		return continueSave();
 	}
+#if 0 // todo
 	_api.request(MTPchannels_ToggleSignatures(
 		channel->inputChannel,
 		MTP_bool(*_savingData.signatures)
@@ -2145,6 +2153,7 @@ void Controller::saveSignatures() {
 			cancelSave();
 		}
 	}).send();
+#endif
 }
 
 void Controller::saveForwards() {
@@ -2255,6 +2264,7 @@ void Controller::deleteChannel() {
 	if (chat) {
 		session->api().deleteConversation(chat, false);
 	}
+#if 0 // todo
 	session->api().request(MTPchannels_DeleteChannel(
 		channel->inputChannel
 	)).done([=](const MTPUpdates &result) {
@@ -2264,6 +2274,7 @@ void Controller::deleteChannel() {
 	//		Ui::show(Box<Ui::InformBox>(tr::lng_cant_delete_channel(tr::now)));
 	//	}
 	}).send();
+#endif
 }
 
 } // namespace

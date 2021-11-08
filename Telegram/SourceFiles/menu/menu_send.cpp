@@ -853,6 +853,7 @@ void SetupUnreadMentionsMenu(
 		const auto peer = thread->peer();
 		const auto topic = thread->asTopic();
 		const auto rootId = topic ? topic->rootId() : 0;
+#if 0 // todo
 		using Flag = MTPmessages_ReadMentions::Flag;
 		peer->session().api().request(MTPmessages_ReadMentions(
 			MTP_flags(rootId ? Flag::f_top_msg_id : Flag()),
@@ -869,6 +870,7 @@ void SetupUnreadMentionsMenu(
 				peer->owner().history(peer)->clearUnreadMentionsFor(rootId);
 			}
 		}).fail(done).send();
+#endif
 	};
 	const auto sendRequest = [=](
 			not_null<Data::Thread*> thread,
@@ -894,6 +896,7 @@ void SetupUnreadReactionsMenu(
 		const auto topic = thread->asTopic();
 		const auto peer = thread->peer();
 		const auto rootId = topic ? topic->rootId() : 0;
+#if 0 // todo
 		using Flag = MTPmessages_ReadReactions::Flag;
 		peer->session().api().request(MTPmessages_ReadReactions(
 			MTP_flags(rootId ? Flag::f_top_msg_id : Flag(0)),
@@ -910,6 +913,7 @@ void SetupUnreadReactionsMenu(
 				peer->owner().history(peer)->clearUnreadReactionsFor(rootId);
 			}
 		}).fail(done).send();
+#endif
 	};
 	const auto sendRequest = [=](
 			not_null<Data::Thread*> thread,

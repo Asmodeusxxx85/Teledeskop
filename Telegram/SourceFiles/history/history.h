@@ -203,7 +203,7 @@ public:
 		MessageFlags localFlags,
 		bool detachExistingItem = false,
 		bool newMessage = false);
-#if 0 // #mtp
+#if 0 // mtp
 	std::vector<not_null<HistoryItem*>> createItems(
 		const QVector<MTPMessage> &data);
 #endif
@@ -217,7 +217,7 @@ public:
 		MessageFlags localFlags,
 		bool detachExistingItem);
 
-#if 0 // #mtp
+#if 0 // mtp
 	void addOlderSlice(const QVector<MTPMessage> &slice);
 	void addNewerSlice(const QVector<MTPMessage> &slice);
 #endif
@@ -282,8 +282,11 @@ public:
 	[[nodiscard]] bool lastServerMessageKnown() const;
 	void unknownMessageDeleted(MsgId messageId);
 	void applyDialogTopMessage(MsgId topMessageId);
+
+#if 0 // mtp
 	void applyDialog(Data::Folder *requestFolder, const MTPDdialog &data);
 	void applyPinnedUpdate(const MTPDupdateDialogPinned &data);
+#endif
 
 	void applyPosition(const Tdb::TLDchatPosition &data);
 	void applyLastMessage(const Tdb::TLmessage &data);
@@ -395,7 +398,7 @@ public:
 	[[nodiscard]] bool useTopPromotion() const;
 	int fixedOnTopIndex() const override;
 	void updateChatListExistence() override;
-#if 0 // #TODO legacy
+#if 0 // mtp
 	bool shouldBeInChatList() const override;
 #endif
 	Dialogs::UnreadState chatListUnreadState() const override;
@@ -553,7 +556,7 @@ private:
 		not_null<HistoryBlock*> block,
 		not_null<Element*> view);
 
-#if 0 // #TODO legacy
+#if 0 // mtp
 	TimeId adjustedChatListTimeId() const override;
 #endif
 
