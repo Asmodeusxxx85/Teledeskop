@@ -145,7 +145,25 @@ void SaveDefaultRestrictions(
 		Fn<void()> done) {
 	const auto api = &peer->session().api();
 	const auto key = Api::RequestKey("default_restrictions", peer->id);
-#if 0 // todo
+	const auto requestId = api->sender().request(Tdb::TLsetChatPermissions(
+		peerToTdbChat(peer->id),
+		ChatRestrictionsInfo::ToTLPermissions(rights)
+	)).done([=] {
+		api->clearModifyRequest(key);
+		{ // CHAT_NOT_MODIFIED is processed as TLok.
+			if (const auto chat = peer->asChat()) {
+				chat->setDefaultRestrictions(rights);
+			} else if (const auto channel = peer->asChannel()) {
+				channel->setDefaultRestrictions(rights);
+			} else {
+				Unexpected("Peer in ApiWrap::saveDefaultRestrictions.");
+			}
+		}
+		done();
+	}).fail([=] {
+		api->clearModifyRequest(key);
+	}).send();
+#if 0 // goodToRemove
 	const auto requestId = api->request(
 		MTPmessages_EditChatDefaultBannedRights(
 			peer->input,
@@ -171,9 +189,9 @@ void SaveDefaultRestrictions(
 		}
 		done();
 	}).send();
+#endif
 
 	api->registerModifyRequest(key, requestId);
-#endif
 }
 
 void SaveSlowmodeSeconds(
@@ -182,7 +200,18 @@ void SaveSlowmodeSeconds(
 		Fn<void()> done) {
 	const auto api = &channel->session().api();
 	const auto key = Api::RequestKey("slowmode_seconds", channel->id);
-#if 0 // todo
+	const auto requestId = api->sender().request(Tdb::TLsetChatSlowModeDelay(
+		peerToTdbChat(channel->id),
+		Tdb::tl_int32(seconds)
+	)).done([=] {
+		api->clearModifyRequest(key);
+		// CHAT_NOT_MODIFIED is processed as TLok.
+		channel->setSlowmodeSeconds(seconds);
+		done();
+	}).fail([=] {
+		api->clearModifyRequest(key);
+	}).send();
+#if 0 // goodToRemove
 	const auto requestId = api->request(MTPchannels_ToggleSlowMode(
 		channel->inputChannel,
 		MTP_int(seconds)
@@ -199,9 +228,9 @@ void SaveSlowmodeSeconds(
 		channel->setSlowmodeSeconds(seconds);
 		done();
 	}).send();
+#endif
 
 	api->registerModifyRequest(key, requestId);
-#endif
 }
 
 void SaveBoostsUnrestrict(
@@ -407,7 +436,10 @@ private:
 	const not_null<Window::SessionNavigation*> _navigation;
 	const not_null<Ui::BoxContent*> _box;
 	not_null<PeerData*> _peer;
+#if 0 // goodToRemove
 	MTP::Sender _api;
+#endif
+	Tdb::Sender _api;
 	const bool _isGroup = false;
 	const bool _isBot = false;
 
@@ -437,7 +469,10 @@ Controller::Controller(
 : _navigation(navigation)
 , _box(box)
 , _peer(peer)
+#if 0 // goodToRemove
 , _api(&_peer->session().mtp())
+#endif
+, _api(&_peer->session().sender())
 , _isGroup(_peer->isChat() || _peer->isMegagroup())
 , _isBot(_peer->isUser() && _peer->asUser()->botInfo) {
 	_box->setTitle(_isBot
@@ -836,6 +871,20 @@ void Controller::showEditLinkedChatBox() {
 		return;
 	}
 	_linkedChatsRequestId = _api.request(
+		Tdb::TLgetSuitableDiscussionChats()
+	).done([=](const Tdb::TLDchats &data) {
+		_linkedChatsRequestId = 0;
+
+		auto chats = std::vector<not_null<PeerData*>>();
+		chats.reserve(data.vchat_ids().v.size());
+		for (const auto &chatId : data.vchat_ids().v) {
+			const auto peerId = peerFromTdbChat(chatId);
+			if (const auto peer = _peer->owner().peerLoaded(peerId)) {
+				chats.push_back(peer);
+			}
+		}
+#if 0 // goodToRemove
+	_linkedChatsRequestId = _api.request(
 		MTPchannels_GetGroupsForDiscussion()
 	).done([=](const MTPmessages_Chats &result) {
 		_linkedChatsRequestId = 0;
@@ -847,6 +896,7 @@ void Controller::showEditLinkedChatBox() {
 		for (const auto &item : list) {
 			chats.emplace_back(_peer->owner().processChat(item));
 		}
+#endif
 		*box = _navigation->parentController()->show(EditLinkedChatBox(
 			_navigation,
 			channel,
@@ -1826,6 +1876,7 @@ void Controller::saveUsername() {
 	}
 
 	const auto newUsername = (*_savingData.username);
+#if 0 // goodToRemove
 	_api.request(MTPchannels_UpdateUsername(
 		channel->inputChannel,
 		MTP_string(newUsername)
@@ -1843,7 +1894,18 @@ void Controller::saveUsername() {
 			continueSave();
 			return;
 		}
-
+#endif
+	_api.request(Tdb::TLsetSupergroupUsername(
+		Tdb::tl_int53(peerToChannel(channel->id).bare),
+		Tdb::tl_string(newUsername)
+	)).done([=] {
+		// USERNAME_NOT_MODIFIED is processed as TLok.
+		channel->setName(
+			TextUtilities::SingleLine(channel->name),
+			newUsername);
+		continueSave();
+	}).fail([=](const Tdb::Error &error) {
+		const auto &type = error.message;
 		// Very rare case.
 		showEditPeerTypeBox([&] {
 			if (type == u"USERNAME_INVALID"_q) {
@@ -1878,12 +1940,20 @@ void Controller::saveLinkedChat() {
 		return;
 	}
 
+#if 0 // goodToRemove
 	const auto input = *_savingData.linkedChat
 		? (*_savingData.linkedChat)->inputChannel
 		: MTP_inputChannelEmpty();
 	_api.request(MTPchannels_SetDiscussionGroup(
 		(channel->isBroadcast() ? channel->inputChannel : input),
 		(channel->isBroadcast() ? input : channel->inputChannel)
+#endif
+	const auto input = *_savingData.linkedChat
+		? peerToTdbChat((*_savingData.linkedChat)->id)
+		: Tdb::tl_int53(0);
+	_api.request(Tdb::TLsetChatDiscussionGroup(
+		(channel->isBroadcast() ? peerToTdbChat(channel->id) : input),
+		(channel->isBroadcast() ? input : peerToTdbChat(channel->id))
 	)).done([=] {
 		channel->setLinkedChat(*_savingData.linkedChat);
 		continueSave();
@@ -1896,7 +1966,7 @@ void Controller::saveTitle() {
 	if (!_savingData.title || *_savingData.title == _peer->name()) {
 		return continueSave();
 	}
-#if 0 // todo
+#if 0 // goodToRemove
 	const auto onDone = [=](const MTPUpdates &result) {
 		_peer->session().api().applyUpdates(result);
 		continueSave();
@@ -1965,6 +2035,28 @@ void Controller::saveTitle() {
 		continueSave();
 	}
 #endif
+	if (!_peer->isChat() && !_peer->isChannel()) {
+		return continueSave();
+	}
+	_api.request(Tdb::TLsetChatTitle(
+		peerToTdbChat(_peer->id),
+		Tdb::tl_string(*_savingData.title)
+	)).done([=] {
+		// CHAT_NOT_MODIFIED is processed as TLok.
+		if (const auto channel = _peer->asChannel()) {
+			channel->setName(*_savingData.title, channel->username);
+		} else if (const auto chat = _peer->asChat()) {
+			chat->setName(*_savingData.title);
+		}
+		continueSave();
+	}).fail([=](const Tdb::Error &error) {
+		const auto &type = error.message;
+		_controls.title->showError();
+		if (error.message == u"NO_CHAT_TITLE"_q) {
+			_box->scrollToWidget(_controls.title);
+		}
+		cancelSave();
+	}).send();
 }
 
 void Controller::saveDescription() {
@@ -1972,7 +2064,7 @@ void Controller::saveDescription() {
 		|| *_savingData.description == _peer->about()) {
 		return continueSave();
 	}
-#if 0 // todo
+#if 0 // goodToRemove
 	const auto successCallback = [=] {
 		_peer->setAbout(*_savingData.description);
 		continueSave();
@@ -2022,6 +2114,17 @@ void Controller::saveDescription() {
 		cancelSave();
 	}).send();
 #endif
+	_api.request(Tdb::TLsetChatDescription(
+		peerToTdbChat(_peer->id),
+		Tdb::tl_string(*_savingData.description)
+	)).done([=] {
+		// CHAT_ABOUT_NOT_MODIFIED is processed as TLok.
+		_peer->setAbout(*_savingData.description);
+		continueSave();
+	}).fail([=] {
+		_controls.description->showError();
+		cancelSave();
+	}).send();
 }
 
 void Controller::saveHistoryVisibility() {
@@ -2072,7 +2175,7 @@ void Controller::togglePreHistoryHidden(
 		bool hidden,
 		Fn<void()> done,
 		Fn<void()> fail) {
-#if 0 // todo
+	// CHAT_NOT_MODIFIED is processed as TLok.
 	const auto apply = [=] {
 		// Update in the result doesn't contain the
 		// channelFull:flags field which holds this value.
@@ -2083,6 +2186,11 @@ void Controller::togglePreHistoryHidden(
 
 		done();
 	};
+	_api.request(Tdb::TLtoggleSupergroupIsAllHistoryAvailable(
+		Tdb::tl_int53(peerToChannel(channel->id).bare),
+		Tdb::tl_bool(hidden)
+	)).done(apply).fail(fail).send();
+#if 0 // goodToRemove
 	_api.request(MTPchannels_TogglePreHistoryHidden(
 		channel->inputChannel,
 		MTP_bool(hidden)
@@ -2139,7 +2247,7 @@ void Controller::saveSignatures() {
 		|| *_savingData.signatures == channel->addsSignature()) {
 		return continueSave();
 	}
-#if 0 // todo
+#if 0 // goodToRemove
 	_api.request(MTPchannels_ToggleSignatures(
 		channel->inputChannel,
 		MTP_bool(*_savingData.signatures)
@@ -2154,6 +2262,15 @@ void Controller::saveSignatures() {
 		}
 	}).send();
 #endif
+	_api.request(Tdb::TLtoggleSupergroupSignMessages(
+		Tdb::tl_int53(peerToChannel(channel->id).bare),
+		Tdb::tl_bool(*_savingData.signatures)
+	)).done([=] {
+		// CHAT_NOT_MODIFIED is processed as TLok.
+		continueSave();
+	}).fail([=] {
+		cancelSave();
+	}).send();
 }
 
 void Controller::saveForwards() {
@@ -2176,6 +2293,15 @@ void Controller::saveForwards() {
 		}
 	}).send();
 #endif
+	_api.request(Tdb::TLtoggleChatHasProtectedContent(
+		peerToTdbChat(_peer->id),
+		Tdb::tl_bool(*_savingData.noForwards)
+	)).done([=] {
+		// CHAT_NOT_MODIFIED is processed as TLok.
+		continueSave();
+	}).fail([=] {
+		cancelSave();
+	}).send();
 }
 
 void Controller::saveJoinToWrite() {
@@ -2266,7 +2392,7 @@ void Controller::deleteChannel() {
 	if (chat) {
 		session->api().deleteConversation(chat, false);
 	}
-#if 0 // todo
+#if 0 // goodToRemove
 	session->api().request(MTPchannels_DeleteChannel(
 		channel->inputChannel
 	)).done([=](const MTPUpdates &result) {
@@ -2277,6 +2403,13 @@ void Controller::deleteChannel() {
 	//	}
 	}).send();
 #endif
+	session->sender().request(Tdb::TLdeleteChat(
+		peerToTdbChat(channel->id)
+	)).send();
+	//}).fail([=](const MTP::Error &error) {
+	//	if (error.type() == qstr("CHANNEL_TOO_LARGE")) {
+	//		Ui::show(Box<Ui::InformBox>(tr::lng_cant_delete_channel(tr::now)));
+	//	}
 }
 
 } // namespace
