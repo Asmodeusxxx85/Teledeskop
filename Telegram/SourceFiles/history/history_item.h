@@ -16,6 +16,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 namespace Tdb {
 class TLmessage;
 class TLDmessage;
+class TLmessageContent;
 } // namespace Tdb
 
 class HiddenSenderInfo;
@@ -543,6 +544,11 @@ public:
 	void updateDate(TimeId newDate);
 	[[nodiscard]] bool canUpdateDate() const;
 	void customEmojiRepaint();
+
+	void updateContent(const Tdb::TLmessageContent &content);
+	void updateEditedInfo(
+		TimeId editDate,
+		HistoryMessageMarkupData &&markup);
 
 	[[nodiscard]] TimeId ttlDestroyAt() const {
 		return _ttlDestroyAt;
