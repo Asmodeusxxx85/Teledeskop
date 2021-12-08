@@ -3144,9 +3144,12 @@ void FormController::startPhoneVerification(not_null<Value*> value) {
 		TLsendPhoneNumberVerificationCode(
 			tl_string(getPhoneFromValue(value)),
 			tl_phoneNumberAuthenticationSettings(
-				tl_bool(false),
-				tl_bool(false),
-				tl_bool(false))
+				tl_bool(false), // allow_flash_call
+				tl_bool(false), // allow_missed_call
+				tl_bool(false), // is_current_phone_number
+				tl_bool(false), // allow_sms_retriever_api
+				std::nullopt, // firebase_authentication_settings
+				tl_vector<TLstring>()) // authentication_tokens
 	)).done([=](const TLDauthenticationCodeInfo &data) {
 		value->verification.requestId = 0;
 
@@ -3184,8 +3187,27 @@ void FormController::startPhoneVerification(not_null<Value*> value) {
 			if (data.vnext_type()) {
 				LOG(("API Error: next_type is not supported for calls."));
 			}
+		}, [&](const TLDauthenticationCodeTypeFragment &type) {
+			value->verification.codeLength = (type.vlength().v > 0)
+				? type.vlength().v
+				: -1;
+		}, [&](const TLDauthenticationCodeTypeSmsWord &data) {
+			LOG(("API Error: sentCodeTypeSmsWord not expected "
+				"in FormController::startPhoneVerification."));
+		}, [&](const TLDauthenticationCodeTypeSmsPhrase &data) {
+			LOG(("API Error: sentCodeTypeSmsPhrase not expected "
+				"in FormController::startPhoneVerification."));
+		}, [&](const TLDauthenticationCodeTypeMissedCall &data) {
+			LOG(("API Error: sentCodeTypeMissedCall not expected "
+				"in FormController::startPhoneVerification."));
 		}, [&](const TLDauthenticationCodeTypeFlashCall &type) {
 			LOG(("API Error: sentCodeTypeFlashCall not expected "
+				"in FormController::startPhoneVerification."));
+		}, [&](const TLDauthenticationCodeTypeFirebaseAndroid &data) {
+			LOG(("API Error: sentCodeTypeFirebaseAndroid not expected "
+				"in FormController::startPhoneVerification."));
+		}, [&](const TLDauthenticationCodeTypeFirebaseIos &data) {
+			LOG(("API Error: sentCodeTypeFirebaseIos not expected "
 				"in FormController::startPhoneVerification."));
 		});
 
