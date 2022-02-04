@@ -18,6 +18,8 @@ class TLmessage;
 class TLDmessage;
 class TLmessageContent;
 class TLmessageInteractionInfo;
+class TLmessageReaction;
+class TLunreadReaction;
 } // namespace Tdb
 
 class HiddenSenderInfo;
@@ -357,6 +359,7 @@ public:
 	void applyEdition(HistoryMessageEdition &&edition);
 	void applyChanges(not_null<Data::Story*> story);
 
+#if 0 // mtp
 	void applyEdition(const MTPDmessageService &message);
 	void applyEdition(const MTPMessageExtendedMedia &media);
 	void updateForwardedInfo(const MTPMessageFwdHeader *fwd);
@@ -369,6 +372,7 @@ public:
 		const MTPDupdateShortSentMessage &data,
 		bool wasAlready);
 	void updateReactions(const MTPMessageReactions *reactions);
+#endif
 
 	void applyEditionToHistoryCleared();
 	void updateReplyMarkup(HistoryMessageMarkupData &&markup);
@@ -455,7 +459,9 @@ public:
 	void toggleReaction(
 		const Data::ReactionId &reaction,
 		ReactionSource source);
+#if 0 // mtp
 	void updateReactionsUnknown();
+#endif
 	[[nodiscard]] auto reactions() const
 		-> const std::vector<Data::MessageReaction> &;
 	[[nodiscard]] auto recentReactions() const
@@ -466,7 +472,9 @@ public:
 	[[nodiscard]] std::vector<Data::ReactionId> chosenReactions() const;
 	[[nodiscard]] Data::ReactionId lookupUnreadReaction(
 		not_null<UserData*> from) const;
+#if 0 // mtp
 	[[nodiscard]] crl::time lastReactionsRefreshTime() const;
+#endif
 
 	[[nodiscard]] bool reactionsAreTags() const;
 	[[nodiscard]] bool hasDirectLink() const;
@@ -625,6 +633,7 @@ private:
 
 	void setGroupId(MessageGroupId groupId);
 
+#if 0 // mtp
 	static void FillForwardedInfo(
 		CreateConfig &config,
 		const MTPDmessageFwdHeader &data);
@@ -641,6 +650,7 @@ private:
 	void createServiceFromMtp(const MTPDmessageService &message);
 	void applyTTL(const MTPDmessage &data);
 	void applyTTL(const MTPDmessageService &data);
+#endif
 
 	void applyTTL(TimeId destroyAt);
 
