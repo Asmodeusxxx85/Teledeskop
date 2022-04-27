@@ -1301,7 +1301,10 @@ void MainWidget::showHistory(
 			return;
 		}
 	}
+#if 0 // mtp
 	if ((IsServerMsgId(showAtMsgId) || Data::IsScheduledMsgId(showAtMsgId))
+#endif
+	if (IsServerMsgId(showAtMsgId)
 		&& _mainSection
 		&& _mainSection->showMessage(peerId, params, showAtMsgId)) {
 		session().data().hideShownSpoilers();
