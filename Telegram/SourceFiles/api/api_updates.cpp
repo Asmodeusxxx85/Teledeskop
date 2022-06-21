@@ -2986,6 +2986,7 @@ void Updates::applyUpdate(const TLupdate &update) {
 	}, [&](const TLDupdateRecentStickers &data) {
 	}, [&](const TLDupdateFavoriteStickers &data) {
 	}, [&](const TLDupdateSavedAnimations &data) {
+	}, [&](const TLDupdateSavedNotificationSounds &data) {
 	}, [&](const TLDupdateSelectedBackground &data) {
 	}, [&](const TLDupdateChatThemes &data) {
 	}, [&](const TLDupdateLanguagePackStrings &data) {
@@ -2993,6 +2994,8 @@ void Updates::applyUpdate(const TLupdate &update) {
 	}, [&](const TLDupdateConnectionState &data) {
 	}, [&](const TLDupdateTermsOfService &data) {
 	}, [&](const TLDupdateUsersNearby &data) {
+	}, [&](const TLDupdateAttachmentMenuBots &data) {
+	}, [&](const TLDupdateWebAppMessageSent &data) {
 	}, [&](const TLDupdateDiceEmojis &data) {
 	}, [&](const TLDupdateAnimatedEmojiMessageClicked &data) {
 	}, [&](const TLDupdateAnimationSearchParameters &data) {
