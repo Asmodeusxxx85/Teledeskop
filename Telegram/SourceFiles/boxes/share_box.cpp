@@ -2006,6 +2006,10 @@ void ShareGameScoreByHash(
 			api.requestMessageData(peer, msgId, std::move(done));
 		});
 
+		// In Tdb we use just peerId in ApiWrap::requestMessageData.
+		resolveMessageAndShareScore(
+			controller->session().data().peer(peerId));
+#if 0 // mtp
 		const auto peer = peerIsChannel(peerId)
 			? controller->session().data().peerLoaded(peerId)
 			: nullptr;
@@ -2034,5 +2038,6 @@ void ShareGameScoreByHash(
 				}
 			}).send();
 		}
+#endif
 	}
 }
