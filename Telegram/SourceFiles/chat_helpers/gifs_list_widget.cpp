@@ -286,6 +286,7 @@ void GifsListWidget::cancelGifsSearch() {
 	refreshInlineRows(nullptr, true);
 }
 
+#if 0 // mtp
 void GifsListWidget::inlineResultsDone(const MTPmessages_BotResults &result) {
 	_search->setLoading(false);
 	_inlineRequestId = 0;
@@ -333,6 +334,7 @@ void GifsListWidget::inlineResultsDone(const MTPmessages_BotResults &result) {
 	}
 	checkLoadMore();
 }
+#endif
 
 void GifsListWidget::paintEvent(QPaintEvent *e) {
 	Painter p(this);
@@ -865,6 +867,7 @@ void GifsListWidget::searchForGifs(const QString &query) {
 
 	if (!_searchBot && !_searchBotRequestId) {
 		auto username = kSearchBotUsername.utf16();
+#if 0 // todo
 		_searchBotRequestId = _api.request(MTPcontacts_ResolveUsername(
 			MTP_string(username)
 		)).done([=](const MTPcontacts_ResolvedPeer &result) {
@@ -879,6 +882,7 @@ void GifsListWidget::searchForGifs(const QString &query) {
 				_searchBot = user;
 			}
 		}).send();
+#endif
 	}
 }
 
@@ -915,6 +919,7 @@ void GifsListWidget::sendInlineRequest() {
 	}
 
 	_search->setLoading(true);
+#if 0 // todo
 	_inlineRequestId = _api.request(MTPmessages_GetInlineBotResults(
 		MTP_flags(0),
 		_searchBot->inputUser,
@@ -929,6 +934,7 @@ void GifsListWidget::sendInlineRequest() {
 		_search->setLoading(false);
 		_inlineRequestId = 0;
 	}).handleAllErrors().send();
+#endif
 }
 
 void GifsListWidget::refreshRecent() {
