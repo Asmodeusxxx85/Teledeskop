@@ -1253,6 +1253,11 @@ not_null<UserData*> Session::processUser(const TLuser &user) {
 	if (decorationsUpdated && result->isMinimalLoaded()) {
 		_peerDecorationsUpdated.fire_copy(result);
 	}
+	if (const auto &status = data.vemoji_status()) {
+		result->setEmojiStatus(status->data().vcustom_emoji_id().v);
+	} else {
+		result->setEmojiStatus(0);
+	}
 
 	if (updateFlags) {
 		session().changes().peerUpdated(result, updateFlags);
@@ -1288,11 +1293,7 @@ not_null<PeerData*> Session::processPeer(const TLchat &dialog) {
 		data.vnotification_settings());
 
 	const auto availableReactions = [&] {
-		auto list = base::flat_set<QString>();
-		for (const auto &reaction : data.vavailable_reactions().v) {
-			list.emplace(reaction.v);
-		}
-		return list;
+		return Data::Parse(result, data.vavailable_reactions());
 	};
 
 	if (const auto user = result->asUser()) {
@@ -4552,9 +4553,11 @@ not_null<PhotoData*> Session::processSmallPhoto(
 	return result;
 }
 
-not_null<DocumentData*> Session::processPlainDocument(const TLfile &data) {
+not_null<DocumentData*> Session::processPlainDocument(
+		const TLfile &data,
+		SimpleDocumentType type) {
 	const auto result = document(data.data().vid().v);
-	result->setSimpleFromTdb(data);
+	result->setSimpleFromTdb(data, type);
 	return result;
 }
 
