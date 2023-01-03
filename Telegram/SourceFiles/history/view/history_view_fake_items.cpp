@@ -65,10 +65,11 @@ PeerId GenerateUser(not_null<History*> history, const QString &name) {
 		tl_bool(false), // is_verified_
 		tl_bool(false), // is_premium_
 		tl_bool(false), // is_support_
-		tl_bool(false), // has_anonymous_phone_number
 		TLstring(), // restriction_reason_
 		tl_bool(false), // is_scam_
 		tl_bool(false), // is_fake_
+		tl_bool(false), // has_active_stories_
+        tl_bool(false), // has_unread_active_stories_
 		tl_bool(true), // have_access_
 		tl_userTypeRegular(), // type_
 		TLstring(), // language_code_
