@@ -1705,7 +1705,6 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 							Tdb::tl_string(),
 							Tdb::tl_vector<Tdb::TLtextEntity>()));
 				}();
-
 				state->requests.insert(api.request(
 					Tdb::TLsendMessage(
 						peerToTdbChat(peer->id),
@@ -1717,12 +1716,9 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 							tl_int53(msgIds.front().msg.bare),
 							Tdb::tl_bool(true), // In game share.
 							std::move(tlCopyOptions))
-					)).done([=](
+				)).done([=](
 						const Tdb::TLmessage &message,
 						Tdb::RequestId reqId) {
-					peer->owner().processMessage(
-						message,
-						NewMessageType::Unread);
 					state->requests.remove(reqId);
 					requestDone();
 				}).send());

@@ -4208,13 +4208,7 @@ void ApiWrap::forwardMessages(
 				draft.options == Data::ForwardOptions::NoNamesAndCaptions),
 			tl_bool(false) // only_preview
 		)).done([=](const TLmessages &result) {
-			for (const auto &message : result.data().vmessages().v) {
-				if (message) {
-					session().data().processMessage(
-						*message,
-						NewMessageType::Unread);
-				}
-			}
+			// They should've been added by updates.
 		}).fail([=](const Error &error) {
 			sendMessageFail(error.message, peer);
 		}).send();
@@ -4576,7 +4570,6 @@ void ApiWrap::sendUploadedDocument(
 
 void ApiWrap::cancelLocalItem(not_null<HistoryItem*> item) {
 	Expects(item->isSending());
-	// todo cancel album part sending
 
 	if (const auto groupId = item->groupId()) {
 		sendAlbumWithCancelled(item, groupId);
@@ -4881,9 +4874,7 @@ void ApiWrap::sendBotStart(
 		tl_int53(peerToUser(bot->id).bare),
 		peerToTdbChat(chat ? chat->id : bot->id),
 		tl_string(token)
-	)).done([=](const TLmessage &result) {
-		session().data().processMessage(result, NewMessageType::Unread);
-	}).fail([=](const Error &error) {
+	)).fail([=](const Error &error) {
 		if (chat) {
 			ShowAddParticipantsError(error.message, chat, { 1, bot });
 		}
@@ -4928,10 +4919,7 @@ void ApiWrap::sendInlineResult(
 		tl_int64(data->getQueryId()),
 		tl_string(data->getId()),
 		tl_bool(action.options.hideViaBot)
-	)).done([=](const TLmessage &result) {
-		history->finishSavingCloudDraftNow(topicRootId);
-		_session->data().processMessage(result, NewMessageType::Unread);
-	}).fail([=](const Error &error) {
+	)).fail([=](const Error &error) {
 		const auto code = error.code;
 		//if (error.type() == qstr("MESSAGE_EMPTY")) {
 		//	lastMessage->destroy();
