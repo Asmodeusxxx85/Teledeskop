@@ -2545,7 +2545,10 @@ void ApiWrap::deleteHistory(
 		not_null<PeerData*> peer,
 		bool justClear,
 		bool revoke) {
+#if 0 // mtp
 	auto deleteTillId = MsgId(0);
+#endif
+	const auto deleteTillId = MsgId(-1);
 	const auto history = _session->data().history(peer);
 	if (justClear) {
 		// In case of clear history we need to know the last server message.
@@ -2561,6 +2564,7 @@ void ApiWrap::deleteHistory(
 				break;
 			}
 		}
+#if 0 // mtp
 		if (!history->lastMessageKnown()) {
 			history->owner().histories().requestDialogEntry(history, [=] {
 				Expects(history->lastMessageKnown());
@@ -2570,6 +2574,7 @@ void ApiWrap::deleteHistory(
 			return;
 		}
 		deleteTillId = history->lastMessage()->id;
+#endif
 	}
 	if (const auto channel = peer->asChannel()) {
 		if (!justClear && !revoke) {
