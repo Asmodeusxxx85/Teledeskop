@@ -863,6 +863,7 @@ public:
 		const MTPMessageMedia &media = MTP_messageMediaEmpty(),
 		bool invertMedia = false);
 #endif
+	void serviceNotification(const TextWithEntities &message);
 
 	void setMimeForwardIds(MessageIdsList &&list);
 	MessageIdsList takeMimeForwardIds();
