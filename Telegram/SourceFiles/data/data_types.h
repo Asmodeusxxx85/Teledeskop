@@ -331,6 +331,8 @@ enum class MessageFlag : uint64 {
 	ShortcutMessage       = (1ULL << 44),
 
 	EffectWatched         = (1ULL << 45),
+
+	HideNotificationText  = (1ULL << 63), // added for tdlib
 };
 inline constexpr bool is_flag_type(MessageFlag) { return true; }
 using MessageFlags = base::flags<MessageFlag>;

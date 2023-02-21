@@ -1700,10 +1700,12 @@ bool HistoryItem::isAdminLogEntry() const {
 	return (_flags & MessageFlag::AdminLogEntry);
 }
 
+#if 0 // mtp
 bool HistoryItem::isFromScheduled() const {
 	return isHistoryEntry()
 		&& (_flags & MessageFlag::IsOrWasScheduled);
 }
+#endif
 
 bool HistoryItem::isScheduled() const {
 	return !isHistoryEntry()
@@ -2079,6 +2081,22 @@ void HistoryItem::applyEditionToHistoryCleared() {
 }
 #endif
 
+void HistoryItem::setIsSilent(bool silent) {
+	_flags |= MessageFlag::Silent;
+}
+
+void HistoryItem::setHideNotificationText(bool hide) {
+	if (hide) {
+		_flags |= MessageFlag::HideNotificationText;
+	} else {
+		_flags &= ~MessageFlag::HideNotificationText;
+	}
+}
+
+bool HistoryItem::hideNotificationText() const {
+	return (_flags & MessageFlag::HideNotificationText);
+}
+
 void HistoryItem::updateReplyMarkup(HistoryMessageMarkupData &&markup) {
 	setReplyMarkup(std::move(markup));
 }
@@ -2256,7 +2274,10 @@ void HistoryItem::changeReplyToTopCounter(
 QString HistoryItem::notificationHeader() const {
 	if (isService()) {
 		return QString();
+#if 0 // mtp
 	} else if (out() && isFromScheduled() && !_history->peer->isSelf()) {
+#endif
+	} else if (out() && !_history->peer->isSelf()) {
 		return tr::lng_from_you(tr::now);
 	} else if (!_history->peer->isUser() && !isPost()) {
 		return from()->name();
@@ -3245,7 +3266,12 @@ bool HistoryItem::isService() const {
 
 bool HistoryItem::unread(not_null<Data::Thread*> thread) const {
 	// Messages from myself are always read, unless scheduled.
+#if 0 // mtp
 	if (_history->peer->isSelf() && !isFromScheduled()) {
+		return false;
+	}
+#endif
+	if (_history->peer->isSelf()) {
 		return false;
 	}
 
@@ -3393,9 +3419,14 @@ bool HistoryItem::showNotification() const {
 	if (channel && !channel->amIn()) {
 		return false;
 	}
+#if 0 // mtp
 	return (out() || _history->peer->isSelf())
 		? isFromScheduled()
 		: unread(notificationThread());
+#endif
+	return !out()
+		&& !_history->peer->isSelf()
+		&& unread(notificationThread());
 }
 
 void HistoryItem::markClientSideAsRead() {
