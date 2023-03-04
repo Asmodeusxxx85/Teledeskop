@@ -107,7 +107,9 @@ struct WebPageData {
 		FullStoryId newStoryId,
 		PhotoData *newPhoto,
 		DocumentData *newDocument,
+#if 0 // mtp
 		WebPageCollage &&newCollage,
+#endif
 		std::unique_ptr<Iv::Data> newIv,
 		std::unique_ptr<WebPageStickerSet> newStickerSet,
 		int newDuration,
@@ -121,6 +123,7 @@ struct WebPageData {
 		ChannelData *channel,
 		const MTPmessages_Messages &result);
 #endif
+	void setCollage(WebPageCollage &&newCollage);
 
 	[[nodiscard]] QString displayedSiteName() const;
 	[[nodiscard]] bool computeDefaultSmallMedia() const;
@@ -146,9 +149,11 @@ struct WebPageData {
 	uint32 hasLargeMedia : 1 = 0;
 	uint32 failed : 1 = 0;
 
+
 private:
 	void replaceDocumentGoodThumbnail();
 
 	const not_null<Data::Session*> _owner;
+	mtpRequestId _collageRequestId = 0;
 
 };
