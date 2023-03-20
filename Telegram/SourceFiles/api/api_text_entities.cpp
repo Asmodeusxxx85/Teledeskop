@@ -497,7 +497,7 @@ QVector<TLtextEntity> EntitiesToTdb(const EntitiesInText &entities) {
 				*type));
 		}
 	}
-	return std::move(v);
+	return v;
 }
 
 TLformattedText FormattedTextToTdb(const TextWithEntities &text) {

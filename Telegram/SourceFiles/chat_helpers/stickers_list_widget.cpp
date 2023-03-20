@@ -2777,7 +2777,6 @@ void StickersListWidget::applySearchQuery(std::vector<QString> &&query) {
 		cancelSetsSearch();
 		return;
 	}
-	using Result = EmojiKeywords::Result;
 	const auto callback = crl::guard(&_searchEmojiGuard, [=](
 			const std::vector<EmojiPtr> &result) {
 		searchForSets(text, result);
