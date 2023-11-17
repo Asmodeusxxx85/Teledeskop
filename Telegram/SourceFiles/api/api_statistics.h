@@ -21,6 +21,7 @@ namespace Api {
 class StatisticsRequestSender {
 protected:
 	explicit StatisticsRequestSender(not_null<ChannelData*> channel);
+#if 0 // mtp
 	~StatisticsRequestSender();
 
 	template <
@@ -28,6 +29,7 @@ protected:
 		typename = std::enable_if_t<!std::is_reference_v<Request>>,
 		typename = typename Request::Unboxed>
 	[[nodiscard]] auto makeRequest(Request &&request);
+#endif
 
 	[[nodiscard]] MTP::Sender &api() {
 		return _api;
@@ -41,8 +43,10 @@ private:
 
 	const not_null<ChannelData*> _channel;
 	MTP::Sender _api;
+#if 0 // mtp
 	base::Timer _timer;
 	base::flat_map<MTP::DcId, base::flat_set<mtpRequestId>> _requests;
+#endif
 
 };
 

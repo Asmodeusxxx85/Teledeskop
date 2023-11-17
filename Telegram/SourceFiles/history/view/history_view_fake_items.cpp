@@ -59,6 +59,8 @@ PeerId GenerateUser(not_null<History*> history, const QString &name) {
 		TLstring(), // phone_number_
 		tl_userStatusEmpty(), // status_
 		null, // profile_photo_
+		tl_int32(Data::DecideColorIndex(peerId)),
+		tl_int64(0), // background_custom_emoji_id_
 		null, // emoji_status_
 		tl_bool(false), // is_contact_
 		tl_bool(false), // is_mutual_contact_
