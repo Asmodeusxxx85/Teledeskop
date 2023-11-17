@@ -204,7 +204,9 @@ struct CreditsFormData {
 	QString description;
 	PhotoData *photo = nullptr;
 	InvoiceCredits invoice;
+#if 0 // mtp
 	MTPInputInvoice inputInvoice;
+#endif
 };
 
 struct CreditsReceiptData {
@@ -290,6 +292,8 @@ struct FormUpdate : std::variant<
 [[nodiscard]] MTPinputStorePaymentPurpose InvoicePremiumGiftCodeGiveawayToTL(
 	const InvoicePremiumGiftCode &invoice);
 #endif
+[[nodiscard]] Tdb::TLpremiumGiveawayParameters InvoiceGiftCodeGiveawayToTL(
+	const InvoicePremiumGiftCode &invoice);
 
 class Form final : public base::has_weak_ptr {
 public:
