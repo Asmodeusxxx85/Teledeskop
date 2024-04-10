@@ -15,9 +15,15 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_user.h"
 #include "main/main_session.h"
 
+#include "tdb/tdb_sender.h"
+#include "tdb/tdb_tl_scheme.h"
+
 namespace Data {
 namespace {
 
+using namespace Tdb;
+
+#if 0 // mtp
 [[nodiscard]] MTPBusinessWorkHours ToMTP(const WorkingHours &data) {
 	const auto list = data.intervals.normalized().list;
 	const auto proj = [](const WorkingInterval &data) {
@@ -60,6 +66,47 @@ namespace {
 		ForMessagesToMTP(data.recipients),
 		MTP_int(data.noActivityDays));
 }
+#endif
+
+[[nodiscard]] std::optional<TLbusinessOpeningHours> ToTL(
+		const WorkingHours &data) {
+	if (!data) {
+		return {};
+	}
+	const auto list = data.intervals.normalized().list;
+	const auto proj = [](const WorkingInterval &data) {
+		return MTPBusinessWeeklyOpen(MTP_businessWeeklyOpen(
+			MTP_int(data.start / 60),
+			MTP_int(data.end / 60)));
+	};
+	auto intervals = QVector<TLbusinessOpeningHoursInterval>();
+	intervals.reserve(list.size());
+	for (const auto &interval : list) {
+		intervals.push_back(tl_businessOpeningHoursInterval(
+			tl_int32(interval.start / 60),
+			tl_int32(interval.end / 60)));
+	}
+	return tl_businessOpeningHours(
+		tl_string(data.timezoneId),
+		tl_vector<TLbusinessOpeningHoursInterval>(intervals));
+}
+
+[[nodiscard]] MTPInputBusinessAwayMessage ToMTP(const AwaySettings &data) {
+	using Flag = MTPDinputBusinessAwayMessage::Flag;
+	return MTP_inputBusinessAwayMessage(
+		MTP_flags(data.offlineOnly ? Flag::f_offline_only : Flag()),
+		MTP_int(data.shortcutId),
+		ToMTP(data.schedule),
+		ForMessagesToMTP(data.recipients));
+}
+
+[[nodiscard]] MTPInputBusinessGreetingMessage ToMTP(
+	const GreetingSettings &data) {
+	return MTP_inputBusinessGreetingMessage(
+		MTP_int(data.shortcutId),
+		ForMessagesToMTP(data.recipients),
+		MTP_int(data.noActivityDays));
+}
 
 } // namespace
 
@@ -79,16 +126,24 @@ void BusinessInfo::saveWorkingHours(
 		return;
 	}
 
+#if 0 // mtp
 	using Flag = MTPaccount_UpdateBusinessWorkHours::Flag;
 	session->api().request(MTPaccount_UpdateBusinessWorkHours(
 		MTP_flags(data ? Flag::f_business_work_hours : Flag()),
 		ToMTP(data)
 	)).fail([=](const MTP::Error &error) {
+#endif
+	session->sender().request(TLsetBusinessOpeningHours(
+		ToTL(data)
+	)).fail([=](const Error &error) {
 		auto details = session->user()->businessDetails();
 		details.hours = was;
 		session->user()->setBusinessDetails(std::move(details));
 		if (fail) {
+#if 0 // mtp
 			fail(error.type());
+#endif
+			fail(error.message);
 		}
 	}).send();
 
@@ -104,6 +159,7 @@ void BusinessInfo::saveChatIntro(ChatIntro data, Fn<void(QString)> fail) {
 		return;
 	} else {
 		const auto session = &_owner->session();
+#if 0 // mtp
 		using Flag = MTPaccount_UpdateBusinessIntro::Flag;
 		session->api().request(MTPaccount_UpdateBusinessIntro(
 			MTP_flags(data ? Flag::f_intro : Flag()),
@@ -117,11 +173,24 @@ void BusinessInfo::saveChatIntro(ChatIntro data, Fn<void(QString)> fail) {
 					? data.sticker->mtpInput()
 					: MTP_inputDocumentEmpty()))
 		)).fail([=](const MTP::Error &error) {
+#endif
+		session->sender().request(TLsetBusinessIntro(data
+			? tl_inputBusinessIntro(
+				tl_string(data.title),
+				tl_string(data.description),
+				(data.sticker
+					? tl_inputFileId(tl_int32(data.sticker->tdbFileId()))
+					: std::optional<TLinputFile>()))
+			: std::optional<TLinputBusinessIntro>()
+		)).fail([=](const Error &error) {
 			auto details = session->user()->businessDetails();
 			details.intro = was;
 			session->user()->setBusinessDetails(std::move(details));
 			if (fail) {
+#if 0 // mtp
 				fail(error.type());
+#endif
+				fail(error.message);
 			}
 		}).send();
 	}
@@ -145,16 +214,24 @@ void BusinessInfo::saveAwaySettings(
 	if (was == data) {
 		return;
 	} else if (!data || data.shortcutId) {
+#if 0 // mtp
 		using Flag = MTPaccount_UpdateBusinessAwayMessage::Flag;
 		const auto session = &_owner->session();
 		session->api().request(MTPaccount_UpdateBusinessAwayMessage(
 			MTP_flags(data ? Flag::f_message : Flag()),
 			data ? ToMTP(data) : MTPInputBusinessAwayMessage()
 		)).fail([=](const MTP::Error &error) {
+#endif
+		_owner->session().sender().request(TLsetBusinessAwayMessageSettings(
+			ToTL(data)
+		)).fail([=](const Error &error) {
 			_awaySettings = was;
 			_awaySettingsChanged.fire({});
 			if (fail) {
+#if 0 // mtp
 				fail(error.type());
+#endif
+				fail(error.message);
 			}
 		}).send();
 	}

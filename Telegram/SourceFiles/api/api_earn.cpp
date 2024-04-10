@@ -23,6 +23,7 @@ void RestrictSponsored(
 		not_null<ChannelData*> channel,
 		bool restricted,
 		Fn<void(QString)> failed) {
+#if 0 // tdlib todo
 	channel->session().api().request(MTPchannels_RestrictSponsoredMessages(
 		channel->inputChannel,
 		MTP_bool(restricted))
@@ -31,6 +32,7 @@ void RestrictSponsored(
 	}).fail([=](const MTP::Error &error) {
 		failed(error.type());
 	}).send();
+#endif
 }
 
 void HandleWithdrawalButton(
@@ -77,6 +79,7 @@ void HandleWithdrawalButton(
 				const auto fail = [=](const QString &error) {
 					show->showToast(error);
 				};
+#if 0 // tdlib todo
 				session->api().request(
 					MTPstats_GetBroadcastRevenueWithdrawalUrl(
 						channel->inputChannel,
@@ -86,6 +89,7 @@ void HandleWithdrawalButton(
 				}).fail([=](const MTP::Error &error) {
 					fail(error.type());
 				}).send();
+#endif
 			});
 			show->show(Box<PasscodeBox>(session, fields));
 		});
