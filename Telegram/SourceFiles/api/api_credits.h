@@ -60,7 +60,11 @@ public:
 private:
 	using HistoryTL = MTPpayments_GetStarsTransactions;
 	const not_null<PeerData*> _peer;
+#if 0 // mtp
 	const HistoryTL::Flags _flags;
+#endif
+	const bool _in = false;
+	const bool _out = false;
 
 	mtpRequestId _requestId = 0;
 
@@ -68,7 +72,9 @@ private:
 
 };
 
+#if 0 // mtp
 [[nodiscard]] rpl::producer<not_null<PeerData*>> PremiumPeerBot(
 	not_null<Main::Session*> session);
+#endif
 
 } // namespace Api
