@@ -3370,6 +3370,14 @@ not_null<HistoryItem*> Session::processMessage(
 	return result;
 }
 
+not_null<HistoryItem*> Session::processMessage(
+		BusinessShortcutId shortcutId,
+		const TLquickReplyMessage &message,
+		NewMessageType type) {
+	const auto history = this->history(session().userPeerId());
+	return history->addMessage(shortcutId, message, type);
+}
+
 int Session::unreadBadge() const {
 	return computeUnreadBadge(_chatsList.unreadState());
 }
